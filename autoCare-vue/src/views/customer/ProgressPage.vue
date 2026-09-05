@@ -7,12 +7,14 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { customerNav } from '@/navigation'
 import { useJobsStore } from '@/stores/data'
+import { useAuthStore } from '@/stores/auth'
 import type { JobStatus } from '@/types/index'
 
 const jobs = useJobsStore()
+const auth = useAuthStore()
 
 const steps: JobStatus[] = ['pending', 'assigned', 'in-progress', 'waiting-parts', 'completed']
-const activeJobs = computed(() => jobs.items.filter((j) => j.status !== 'completed'))
+const activeJobs = computed(() => jobs.items.filter((j) => j.name === auth.user?.name && j.status !== 'completed'))
 
 function stepIndex(status: JobStatus) {
   return steps.indexOf(status)
@@ -21,7 +23,7 @@ function stepIndex(status: JobStatus) {
 
 <template>
   <DashboardLayout title="Repair Progress" :nav-items="customerNav">
-    <PageHeader title="Repair progress" subtitle="Live status for every vehicle currently in the shop." />
+    <PageHeader title="Repair progress" subtitle="Track the status of your vehicle services." />
 
     <EmptyState v-if="activeJobs.length === 0" :icon="Activity" title="No active repairs" description="Everything is caught up — nothing is currently in progress." />
 

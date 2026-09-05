@@ -53,6 +53,9 @@ async function onSubmit() {
           <p class="text-sm capitalize text-muted-foreground">Signing in as {{ auth.selectedRole ?? '...' }}</p>
         </div>
 
+        <p v-if="auth.selectedRole === 'customer'" class="mb-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+          Customer demo: enter any email address and any password. Explore sample data without creating a real account.
+        </p>
         <form @submit.prevent="onSubmit" class="flex flex-col gap-4">
           <BaseInput v-model="email" type="email" placeholder="you@example.com" label="Email" required>
             <template #icon><Mail :size="16" /></template>

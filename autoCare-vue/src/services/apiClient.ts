@@ -3,6 +3,7 @@
  */
 
 import { ref } from 'vue'
+import { customerDemo } from './demoSession'
 
 /** Number of requests currently in flight, app-wide. */
 export const pendingRequests = ref(0)
@@ -44,6 +45,9 @@ export async function apiCall<T>(
   body?: any,
   label?: string
 ): Promise<ApiResult<T>> {
+  if (customerDemo.value && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+    return { ok: false, error: 'This feature is unavailable in the customer demo.', status: 0 }
+  }
   const startedAt = performance.now()
   pendingRequests.value++
 
@@ -53,7 +57,7 @@ export async function apiCall<T>(
       'Content-Type': 'application/json',
     }
 
-    const token = getAuthToken()
+    const token = customerDemo.value ? null : getAuthToken()
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }

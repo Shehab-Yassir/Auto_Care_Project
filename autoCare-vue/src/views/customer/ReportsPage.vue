@@ -8,9 +8,11 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { customerNav } from '@/navigation'
 import { useJobsStore } from '@/stores/data'
+import { useAuthStore } from '@/stores/auth'
 
 const jobs = useJobsStore()
-const completed = computed(() => jobs.items.filter((j) => j.status === 'completed'))
+const auth = useAuthStore()
+const completed = computed(() => jobs.items.filter((j) => j.name === auth.user?.name && j.status === 'completed'))
 const totalSpent = computed(() => completed.value.reduce((sum, j) => sum + j.laborCost + j.partsCost, 0))
 </script>
 

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { UserRole } from '@/types/index'
 import { apiCall } from '@/services/apiClient'
+import { customerDemo, setCustomerDemo } from '@/services/demoSession'
 import { isValidEmail, isValidPassword, isNonEmpty } from '@/services/validation'
 
 interface AuthUser {
@@ -18,6 +19,7 @@ export const useAuthStore = defineStore('auth', {
     error: null as string | null,
   }),
   getters: {
+    isDemo: () => customerDemo.value,
     isAuthenticated: (state) => !!state.user,
   },
   actions: {
@@ -41,6 +43,19 @@ export const useAuthStore = defineStore('auth', {
         this.error = 'Enter a valid email address.'
         this.loading = false
         return false
+      }
+      if (this.selectedRole === 'customer') {
+        if (!password) {
+          this.error = 'Enter any password to try the demo.'
+          this.loading = false
+          return false
+        }
+        this.user = { id: 'demo-customer', name: 'John Doe', email: email.trim(), role: 'customer' }
+        localStorage.removeItem('autocare:token')
+        localStorage.setItem('autocare:user', JSON.stringify(this.user))
+        setCustomerDemo(true)
+        this.loading = false
+        return true
       }
       if (!isValidPassword(password)) {
         this.error = 'Password must be at least 6 characters.'
@@ -69,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       // Store token and user
+      setCustomerDemo(false)
       localStorage.setItem('autocare:token', user.token)
       localStorage.setItem('autocare:user', JSON.stringify(this.user))
       localStorage.setItem('autocare:role', user.role)
@@ -130,6 +146,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       // Store token and user
+      setCustomerDemo(false)
       localStorage.setItem('autocare:token', user.token)
       localStorage.setItem('autocare:user', JSON.stringify(this.user))
       localStorage.setItem('autocare:role', user.role)
@@ -138,6 +155,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout() {
+      setCustomerDemo(false)
       this.user = null
       this.selectedRole = null
       this.error = null

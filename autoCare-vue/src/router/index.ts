@@ -15,7 +15,6 @@ const routes: RouteRecordRaw[] = [
 
   {
     path: '/customer',
-    component: () => import('@/views/customer/CustomerDashboard.vue'),
     meta: { requiresAuth: true, roles: ['customer'] },
     children: [
       { path: '', name: 'customer-dashboard', component: () => import('@/views/customer/CustomerDashboard.vue') },

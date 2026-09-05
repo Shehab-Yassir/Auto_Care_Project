@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Car, Calendar, MapPin, Wrench, Shield, Clock, MessageSquare, ArrowRight,
@@ -7,7 +7,6 @@ import {
 } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import BaseCard from '@/components/common/BaseCard.vue'
-import CarHeroIllustration from '@/components/common/CarHeroIllustration.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import { useReveal } from '@/composables/useReveal'
 
@@ -15,6 +14,12 @@ const router = useRouter()
 useReveal()
 
 const mobileMenuOpen = ref(false)
+const mobileMenuButton = ref<HTMLButtonElement | null>(null)
+
+function closeMobileMenu() {
+  mobileMenuOpen.value = false
+  mobileMenuButton.value?.focus()
+}
 
 const features = [
   { icon: Calendar, title: 'Easy Booking', description: 'Schedule maintenance appointments in a few clicks' },
@@ -53,17 +58,24 @@ function go(feature: (typeof features)[number]) {
 // Lightweight count-up for the stats band, triggered once it scrolls into view.
 const displayedStats = ref(stats.map(() => 0))
 const statsSection = ref<HTMLElement | null>(null)
+let statsObserver: IntersectionObserver | null = null
+let statsAnimationFrame: number | null = null
 
 function animateStats() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    displayedStats.value = stats.map((s) => s.value)
+    return
+  }
+
   const duration = 1200
   const start = performance.now()
   function tick(now: number) {
     const progress = Math.min((now - start) / duration, 1)
     const eased = 1 - Math.pow(1 - progress, 3)
     displayedStats.value = stats.map((s) => Math.round(s.value * eased))
-    if (progress < 1) requestAnimationFrame(tick)
+    statsAnimationFrame = progress < 1 ? requestAnimationFrame(tick) : null
   }
-  requestAnimationFrame(tick)
+  statsAnimationFrame = requestAnimationFrame(tick)
 }
 
 onMounted(() => {
@@ -71,16 +83,21 @@ onMounted(() => {
     animateStats()
     return
   }
-  const obs = new IntersectionObserver(
+  statsObserver = new IntersectionObserver(
     (entries) => {
-      if (entries[0].isIntersecting) {
+      if (entries.some((entry) => entry.isIntersecting)) {
         animateStats()
-        obs.disconnect()
+        statsObserver?.disconnect()
       }
     },
     { threshold: 0.4 },
   )
-  obs.observe(statsSection.value)
+  statsObserver.observe(statsSection.value)
+})
+
+onBeforeUnmount(() => {
+  statsObserver?.disconnect()
+  if (statsAnimationFrame !== null) cancelAnimationFrame(statsAnimationFrame)
 })
 </script>
 
@@ -108,20 +125,30 @@ onMounted(() => {
           <BaseButton @click="router.push('/select-role')">Get Started</BaseButton>
         </div>
 
-        <button class="p-2 text-foreground md:hidden" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle menu">
+        <button
+          ref="mobileMenuButton"
+          type="button"
+          class="p-2 text-foreground md:hidden"
+          :aria-expanded="mobileMenuOpen"
+          aria-controls="mobile-menu"
+          :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          @keydown.esc="closeMobileMenu"
+        >
           <Menu v-if="!mobileMenuOpen" :size="22" />
           <X v-else :size="22" />
         </button>
       </div>
 
       <Transition name="mobile-menu">
-        <div v-if="mobileMenuOpen" class="border-t border-border bg-card px-4 pb-4 pt-2 md:hidden">
+        <div v-show="mobileMenuOpen" id="mobile-menu" class="border-t border-border bg-card px-4 pb-4 pt-2 md:hidden" @keydown.esc="closeMobileMenu">
           <div class="flex flex-col gap-1 text-sm font-medium">
             <a href="#features" class="rounded-lg px-3 py-2 hover:bg-accent/10" @click="mobileMenuOpen = false">Features</a>
             <a href="#services" class="rounded-lg px-3 py-2 hover:bg-accent/10" @click="mobileMenuOpen = false">Services</a>
             <a href="#testimonials" class="rounded-lg px-3 py-2 hover:bg-accent/10" @click="mobileMenuOpen = false">Testimonials</a>
           </div>
           <div class="mt-3 flex items-center gap-2">
+            <ThemeToggle />
             <BaseButton variant="outline" class="flex-1" @click="router.push('/login')">Log in</BaseButton>
             <BaseButton class="flex-1" @click="router.push('/select-role')">Get Started</BaseButton>
           </div>
@@ -131,28 +158,24 @@ onMounted(() => {
 
     <!-- Hero -->
     <section class="surface-glow relative overflow-hidden bg-dot-grid">
-      <div class="container grid items-center gap-12 py-16 md:grid-cols-2 md:py-24">
-        <div class="animate-fade-in-up text-center md:text-left">
+      <div class="container py-16 md:py-24">
+        <div class="animate-fade-in-up text-center">
           <span class="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
             <Sparkles :size="14" /> Trusted by 50,000+ drivers
           </span>
-          <h1 class="mx-auto max-w-xl text-4xl font-bold leading-tight tracking-tight md:mx-0 md:text-6xl">
+          <h1 class="mx-auto max-w-3xl text-4xl font-bold leading-tight tracking-tight md:text-6xl">
             Car maintenance,
             <span class="text-gradient">simplified.</span>
           </h1>
-          <p class="mx-auto mt-6 max-w-md text-lg text-muted-foreground md:mx-0">
+          <p class="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
             Book, track, and manage all your vehicle maintenance needs from one place — with pickup, live updates, and expert technicians.
           </p>
-          <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row md:justify-start">
+          <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <BaseButton size="lg" @click="router.push('/select-role')">
               Book a service <ArrowRight :size="18" />
             </BaseButton>
             <BaseButton size="lg" variant="outline" @click="router.push('/chatbot')">Ask the AI assistant</BaseButton>
           </div>
-        </div>
-
-        <div class="animate-fade-in">
-          <CarHeroIllustration />
         </div>
       </div>
 
@@ -168,7 +191,7 @@ onMounted(() => {
     </section>
 
     <!-- Features -->
-    <section id="features" class="container py-20">
+    <section id="features" class="container scroll-mt-20 py-20">
       <div class="reveal mx-auto mb-12 max-w-xl text-center">
         <h2 class="text-3xl font-bold tracking-tight">Everything you need</h2>
         <p class="mt-3 text-muted-foreground">One platform for booking, tracking, and completing every kind of vehicle service.</p>
@@ -185,7 +208,7 @@ onMounted(() => {
           </div>
           <h3 class="mb-1 font-semibold">{{ f.title }}</h3>
           <p class="text-sm text-muted-foreground">{{ f.description }}</p>
-          <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
             Learn more <ArrowRight :size="14" />
           </span>
         </button>
@@ -193,7 +216,7 @@ onMounted(() => {
     </section>
 
     <!-- Services -->
-    <section id="services" class="bg-secondary/40 py-20">
+    <section id="services" class="scroll-mt-20 bg-secondary/40 py-20">
       <div class="container">
         <div class="reveal mx-auto mb-12 max-w-xl text-center">
           <h2 class="text-3xl font-bold tracking-tight">Popular services</h2>
@@ -218,7 +241,7 @@ onMounted(() => {
     </section>
 
     <!-- Testimonials -->
-    <section id="testimonials" class="container py-20">
+    <section id="testimonials" class="container scroll-mt-20 py-20">
       <div class="reveal mx-auto mb-12 max-w-xl text-center">
         <h2 class="text-3xl font-bold tracking-tight">Loved by drivers and shops alike</h2>
         <p class="mt-3 text-muted-foreground">A few words from people who use Auto Care every week.</p>

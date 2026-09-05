@@ -23,12 +23,16 @@ const submitted = ref(false)
 const services = ['Oil Change', 'Brake Service', 'Full Inspection', 'Tire Rotation', 'AC Service', 'Engine Diagnostics']
 
 async function submit() {
+  if (![model.value, plate.value, address.value].every((value) => value.trim())) {
+    jobs.error = 'Enter a car model, license plate, and address.'
+    return
+  }
   const created = await jobs.add({
     name: auth.user?.name ?? 'Guest',
     phone: '+1 555-0000',
-    address: address.value,
-    model: model.value,
-    plate: plate.value,
+    address: address.value.trim(),
+    model: model.value.trim(),
+    plate: plate.value.trim(),
     serviceType: serviceType.value,
     description: description.value,
     status: 'pending',
@@ -52,13 +56,14 @@ async function submit() {
           <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success animate-bounce-in">
             <CheckCircle2 :size="32" />
           </div>
-          <p class="text-lg font-semibold text-success">Booking received!</p>
-          <p class="mt-2 text-sm text-muted-foreground">We'll confirm your appointment shortly.</p>
+          <p class="text-lg font-semibold text-success">{{ auth.isDemo ? 'Demo booking saved!' : 'Booking received!' }}</p>
+          <p class="mt-2 text-sm text-muted-foreground">{{ auth.isDemo ? 'Your sample booking is available in Progress. No real appointment was made.' : "We'll confirm your appointment shortly." }}</p>
+          <router-link to="/customer/progress" class="mt-4 font-medium text-primary underline">View progress</router-link>
         </div>
         <form v-else key="form" @submit.prevent="submit" class="flex flex-col gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium">Service type</label>
-            <select v-model="serviceType" class="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-shadow focus-ring">
+            <label for="service-type" class="mb-1.5 block text-sm font-medium">Service type</label>
+            <select id="service-type" v-model="serviceType" class="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-shadow focus-ring">
               <option v-for="s in services" :key="s">{{ s }}</option>
             </select>
           </div>
@@ -66,8 +71,9 @@ async function submit() {
           <BaseInput v-model="plate" placeholder="License plate" label="License plate" required />
           <BaseInput v-model="address" placeholder="Address" label="Address" required />
           <div>
-            <label class="mb-1.5 block text-sm font-medium">Describe the issue</label>
+            <label for="service-description" class="mb-1.5 block text-sm font-medium">Describe the issue</label>
             <textarea
+              id="service-description"
               v-model="description"
               placeholder="What's going on with your car?"
               class="min-h-[90px] w-full rounded-lg border border-border bg-background p-3 text-sm outline-none transition-shadow focus-ring"

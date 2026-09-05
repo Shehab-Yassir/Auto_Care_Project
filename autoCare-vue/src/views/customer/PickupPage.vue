@@ -20,15 +20,24 @@ const scheduledTime = ref('')
 const requested = ref(false)
 
 async function submit() {
+  if (![address.value, model.value, plate.value].every((value) => value.trim())) {
+    tasks.error = 'Enter an address, car model, and license plate.'
+    return
+  }
+  const scheduledDate = new Date(scheduledTime.value)
+  if (!Number.isFinite(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+    tasks.error = 'Choose a pickup time in the future.'
+    return
+  }
   const created = await tasks.add({
     jobId: '',
     type: 'pickup',
     name: auth.user?.name ?? 'Guest',
     phone: '+1 555-0000',
-    address: address.value,
-    model: model.value,
-    plate: plate.value,
-    scheduledTime: scheduledTime.value ? new Date(scheduledTime.value).toISOString() : new Date().toISOString(),
+    address: address.value.trim(),
+    model: model.value.trim(),
+    plate: plate.value.trim(),
+    scheduledTime: scheduledDate.toISOString(),
     status: 'pending',
     notes: '',
   })
@@ -46,8 +55,8 @@ async function submit() {
           <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success animate-bounce-in">
             <CheckCircle2 :size="32" />
           </div>
-          <p class="text-lg font-semibold text-success">Pickup requested!</p>
-          <p class="mt-2 text-sm text-muted-foreground">A driver will be assigned shortly.</p>
+          <p class="text-lg font-semibold text-success">{{ auth.isDemo ? 'Demo pickup saved!' : 'Pickup requested!' }}</p>
+          <p class="mt-2 text-sm text-muted-foreground">{{ auth.isDemo ? 'This sample request stays in your browser. No driver will be dispatched.' : 'A driver will be assigned shortly.' }}</p>
         </div>
         <form v-else key="form" @submit.prevent="submit" class="flex flex-col gap-4">
           <BaseInput v-model="address" placeholder="Pickup address" label="Address" required />
