@@ -1,0 +1,105 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Car, User, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-vue-next'
+import BaseButton from '@/components/common/BaseButton.vue'
+import BaseInput from '@/components/common/BaseInput.vue'
+import AuthSidePanel from '@/components/layout/AuthSidePanel.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
+
+const router = useRouter()
+const auth = useAuthStore()
+const toast = useToast()
+const name = ref('')
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+const loading = ref(false)
+const error = ref('')
+
+async function onSubmit() {
+  error.value = ''
+  if (!auth.selectedRole) {
+    router.push('/select-role')
+    return
+  }
+  loading.value = true
+  const ok = await auth.register(name.value, email.value, password.value, confirmPassword.value)
+  loading.value = false
+  if (ok) {
+    toast.success('Account created successfully!')
+    router.push(`/${auth.selectedRole}`)
+  } else {
+    error.value = auth.error ?? 'Please fill in all fields.'
+  }
+}
+</script>
+
+<template>
+  <div class="grid min-h-screen lg:grid-cols-2">
+    <AuthSidePanel
+      heading="Join thousands managing car care the modern way."
+      subtext="Create an account to book services, track jobs, or run your shop — whichever role fits you."
+    />
+
+    <div class="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
+      <div class="w-full max-w-sm animate-scale-in">
+        <router-link to="/" class="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground lg:hidden">
+          <ArrowLeft :size="15" /> Back home
+        </router-link>
+
+        <div class="mb-8 flex flex-col items-center gap-2 text-center lg:items-start lg:text-left">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-soft lg:hidden">
+            <Car class="text-primary-foreground" :size="24" />
+          </div>
+          <h1 class="text-2xl font-bold tracking-tight">Create your account</h1>
+          <p class="text-sm capitalize text-muted-foreground">Registering as {{ auth.selectedRole ?? '...' }}</p>
+        </div>
+
+        <form @submit.prevent="onSubmit" class="flex flex-col gap-4">
+          <BaseInput v-model="name" placeholder="Full name" label="Name" required>
+            <template #icon><User :size="16" /></template>
+          </BaseInput>
+          <BaseInput v-model="email" type="email" placeholder="you@example.com" label="Email" required>
+            <template #icon><Mail :size="16" /></template>
+          </BaseInput>
+          <BaseInput v-model="password" type="password" placeholder="••••••••" label="Password" required>
+            <template #icon><Lock :size="16" /></template>
+          </BaseInput>
+          <BaseInput v-model="confirmPassword" type="password" placeholder="••••••••" label="Confirm Password" required>
+            <template #icon><Lock :size="16" /></template>
+          </BaseInput>
+
+          <Transition name="shake-fade">
+            <p v-if="error" class="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <AlertCircle :size="16" class="shrink-0" /> {{ error }}
+            </p>
+          </Transition>
+
+          <BaseButton type="submit" size="lg" :loading="loading" class="mt-1 w-full">
+            {{ loading ? 'Creating account...' : 'Create account' }}
+          </BaseButton>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-muted-foreground">
+          Already have an account?
+          <router-link to="/login" class="font-medium text-primary transition-colors hover:text-primary/80">Sign in</router-link>
+        </p>
+        <p class="mt-2 text-center text-sm">
+          <router-link to="/select-role" class="text-xs text-muted-foreground transition-colors hover:text-foreground">Not {{ auth.selectedRole ?? 'this role' }}? Choose a different role</router-link>
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.shake-fade-enter-active { animation: shake-fade-in 0.35s ease; }
+@keyframes shake-fade-in {
+  0% { opacity: 0; transform: translateX(0); }
+  30% { opacity: 1; transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+</style>

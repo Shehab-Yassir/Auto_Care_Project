@@ -1,0 +1,73 @@
+<template>
+  <svg viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-w-lg mx-auto" role="img" aria-label="Illustration of a car being serviced">
+    <defs>
+      <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="hsl(var(--primary))" />
+        <stop offset="100%" stop-color="hsl(var(--primary-glow))" />
+      </linearGradient>
+      <linearGradient id="glassGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="hsl(var(--accent))" stop-opacity="0.85" />
+        <stop offset="100%" stop-color="hsl(var(--accent))" stop-opacity="0.55" />
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="hsl(var(--primary))" stop-opacity="0.35" />
+        <stop offset="100%" stop-color="hsl(var(--primary))" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+
+    <!-- ambient glow -->
+    <ellipse cx="320" cy="240" rx="260" ry="150" fill="url(#glow)" />
+
+    <!-- floor shadow -->
+    <ellipse cx="320" cy="345" rx="200" ry="18" fill="hsl(var(--foreground))" opacity="0.08" />
+
+    <!-- road -->
+    <rect x="40" y="330" width="560" height="8" rx="4" fill="hsl(var(--border))" />
+    <rect x="70" y="333" width="30" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.5" />
+    <rect x="140" y="333" width="30" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.5" />
+    <rect x="470" y="333" width="30" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.5" />
+    <rect x="540" y="333" width="30" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.5" />
+
+    <!-- car group -->
+    <g class="animate-drive" style="transform-origin: 320px 280px;">
+      <!-- body -->
+      <path d="M120 300 C120 260 150 245 190 240 L230 210 C240 200 260 194 280 194 L400 194 C420 194 438 202 450 216 L478 240 C512 244 540 258 540 292 L540 300 C540 308 534 314 526 314 L500 314 C500 296 486 282 468 282 C450 282 436 296 436 314 L230 314 C230 296 216 282 198 282 C180 282 166 296 166 314 L134 314 C126 314 120 308 120 300 Z" fill="url(#bodyGrad)" />
+      <!-- window band -->
+      <path d="M244 208 L276 210 L266 240 L226 240 Z" fill="url(#glassGrad)" />
+      <path d="M292 208 L398 208 C412 208 426 214 435 224 L446 240 L286 240 Z" fill="url(#glassGrad)" />
+      <!-- door seam -->
+      <line x1="360" y1="240" x2="360" y2="300" stroke="hsl(var(--primary-foreground))" stroke-opacity="0.25" stroke-width="2" />
+      <!-- headlight / tail accent -->
+      <rect x="500" y="252" width="26" height="10" rx="5" fill="hsl(var(--accent))" />
+      <rect x="128" y="256" width="18" height="8" rx="4" fill="hsl(var(--primary-foreground))" opacity="0.55" />
+
+      <!-- wheels -->
+      <g style="transform-origin: 198px 314px;" class="animate-wheel">
+        <circle cx="198" cy="314" r="26" fill="hsl(var(--foreground))" opacity="0.85" />
+        <circle cx="198" cy="314" r="12" fill="hsl(var(--card))" />
+        <line x1="198" y1="302" x2="198" y2="326" stroke="hsl(var(--foreground))" stroke-width="2" />
+        <line x1="186" y1="314" x2="210" y2="314" stroke="hsl(var(--foreground))" stroke-width="2" />
+      </g>
+      <g style="transform-origin: 468px 314px;" class="animate-wheel">
+        <circle cx="468" cy="314" r="26" fill="hsl(var(--foreground))" opacity="0.85" />
+        <circle cx="468" cy="314" r="12" fill="hsl(var(--card))" />
+        <line x1="468" y1="302" x2="468" y2="326" stroke="hsl(var(--foreground))" stroke-width="2" />
+        <line x1="456" y1="314" x2="480" y2="314" stroke="hsl(var(--foreground))" stroke-width="2" />
+      </g>
+    </g>
+
+    <!-- floating service icons -->
+    <g class="animate-float">
+      <circle cx="96" cy="120" r="26" fill="hsl(var(--card))" stroke="hsl(var(--border))" />
+      <path d="M96 108 v10 l7 4" stroke="hsl(var(--primary))" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    </g>
+    <g class="animate-float-slow">
+      <circle cx="540" cy="110" r="24" fill="hsl(var(--card))" stroke="hsl(var(--border))" />
+      <path d="M531 110 l6 6 12 -12" stroke="hsl(var(--success))" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </g>
+    <g class="animate-float" style="animation-delay: 1.2s">
+      <circle cx="470" cy="70" r="18" fill="hsl(var(--card))" stroke="hsl(var(--border))" />
+      <path d="M470 62 v6 M470 74 h.01" stroke="hsl(var(--warning))" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+  </svg>
+</template>
