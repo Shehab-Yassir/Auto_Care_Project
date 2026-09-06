@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Activity, Briefcase, Award, ClipboardList, Calendar, MapPin, Wrench } from 'lucide-vue-next'
+import { Activity, Briefcase, Award, ClipboardList, Calendar, Wrench } from 'lucide-vue-next'
 import DashboardActions from '@/components/common/DashboardActions.vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import BaseCard from '@/components/common/BaseCard.vue'
@@ -21,7 +21,6 @@ const activeService = computed(() => myJobs.value.find((j) => j.status !== 'comp
 const progress = computed(() => ({ pending: 10, assigned: 30, 'in-progress': 65, 'waiting-parts': 75, completed: 100 })[activeService.value?.status ?? 'pending'])
 const actions = [
   { to: '/customer/booking', title: 'Book Service', description: 'Schedule a maintenance appointment', icon: Calendar },
-  { to: '/customer/pickup', title: 'Request Pickup', description: "We'll pick up your car", icon: MapPin },
   { to: '/customer/progress', title: 'Track Progress', description: 'View repair status', icon: ClipboardList },
 ]
 const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'

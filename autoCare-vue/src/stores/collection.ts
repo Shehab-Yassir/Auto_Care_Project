@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Identified } from '@/types/index'
-import { customerDemo } from '@/services/demoSession'
+import { demoSession } from '@/services/demoSession'
 
 /**
  * Creates a generic collection store for mock/cached data.
@@ -18,7 +18,7 @@ export function defineCollectionStore<T extends Identified>(name: string, seed: 
       error: null as string | null,
     }),
     getters: {
-      items: (state) => customerDemo.value ? state.demoItems : state.regularItems,
+      items: (state) => demoSession.value ? state.demoItems : state.regularItems,
       byId() {
         return (id: string): T | undefined => (this.items as T[]).find((i) => i.id === id)
       },
@@ -81,7 +81,7 @@ export function defineCollectionStore<T extends Identified>(name: string, seed: 
       },
 
       persist() {
-        localStorage.setItem(customerDemo.value ? `autocare:demo:${name}` : storageKey, JSON.stringify(this.items))
+        localStorage.setItem(demoSession.value ? `autocare:demo:${name}` : storageKey, JSON.stringify(this.items))
       },
 
       reset() {
@@ -96,7 +96,9 @@ export function defineCollectionStore<T extends Identified>(name: string, seed: 
 function loadInitial<T>(key: string, seed: T[]): T[] {
   try {
     const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(seed))
+    const parsed = raw ? JSON.parse(raw) : null
+    return Array.isArray(parsed) && parsed.every((item) => item && typeof item.id === 'string')
+      ? parsed : JSON.parse(JSON.stringify(seed))
   } catch {
     return JSON.parse(JSON.stringify(seed))
   }

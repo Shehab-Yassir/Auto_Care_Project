@@ -1,7 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
 import { getDatabase } from '../config/database.js';
 import { ValidationError } from '../middleware/errorHandler.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -15,15 +14,15 @@ function generateId() {
 
 // Validation helpers
 function validateEmail(email) {
-  return validator.isEmail(email);
+  return typeof email === 'string' && validator.isEmail(email.trim());
 }
 
 function validatePassword(password) {
-  return password && password.length >= 6;
+  return typeof password === 'string' && password.length >= 6;
 }
 
 function validateName(name) {
-  return name && name.trim().length >= 2;
+  return typeof name === 'string' && name.trim().length >= 2;
 }
 
 // Register
@@ -53,7 +52,7 @@ router.post('/register', async (req, res, next) => {
     const db = await getDatabase();
 
     // Check if email exists
-    const existing = await db.get('SELECT id FROM users WHERE email = ?', email);
+    const existing = await db.get('SELECT id FROM users WHERE email = ?', email.trim().toLowerCase());
     if (existing) {
       throw new ValidationError('This email is already registered');
     }
@@ -69,7 +68,7 @@ router.post('/register', async (req, res, next) => {
     await db.run(
       `INSERT INTO users (id, name, email, password, role, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userId, name.trim(), email.toLowerCase(), hashedPassword, role, now, now]
+      [userId, name.trim(), email.trim().toLowerCase(), hashedPassword, role, now, now]
     );
 
     // Generate token
@@ -108,7 +107,7 @@ router.post('/login', async (req, res, next) => {
     const { email, password, role } = req.body;
 
     // Validation
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
       throw new ValidationError('Email and password are required');
     }
 
@@ -121,7 +120,7 @@ router.post('/login', async (req, res, next) => {
     // Find user
     const user = await db.get(
       'SELECT * FROM users WHERE email = ?',
-      email.toLowerCase()
+      email.trim().toLowerCase()
     );
 
     if (!user) {

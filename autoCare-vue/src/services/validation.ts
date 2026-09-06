@@ -7,5 +7,5 @@ export function isNonEmpty(value: string): boolean {
 }
 
 export function isValidPassword(password: string): boolean {
-  return password.length >= 4
+  return password.length >= 6
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { apiCall } from '@/services/apiClient'
+import { useAuthStore } from '@/stores/auth'
 import { Users, UserCheck, UserX, Briefcase } from 'lucide-vue-next'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import BaseCard from '@/components/common/BaseCard.vue'
@@ -13,11 +14,18 @@ import { useUsersStore, useJobsStore } from '@/stores/data'
 
 const users = useUsersStore()
 const jobs = useJobsStore()
+const auth = useAuthStore()
 const health = ref<{ database: { status: string }; services: Record<string, string> } | null>(null)
 const logs = ref<{ id: string; userName?: string; action: string; createdAt: string }[]>([])
 const healthError = ref('')
 const logsError = ref('')
 onMounted(async () => {
+  if (auth.isDemo) {
+    health.value = { database: { status: 'Local demo data' }, services: { auth: 'Demo sign-in', jobs: 'Local demo data' } }
+    logs.value = [...jobs.items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 4)
+      .map((job) => ({ id: job.id, userName: job.name, action: `${job.serviceType} (${job.status})`, createdAt: job.createdAt }))
+    return
+  }
   const [healthResult, logsResult] = await Promise.all([
     apiCall<NonNullable<typeof health.value>>('GET', '/admin/health'),
     apiCall<typeof logs.value>('GET', '/admin/logs?limit=4'),

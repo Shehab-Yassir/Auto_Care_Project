@@ -20,8 +20,8 @@ router.get('/', authMiddleware, async (req, res, next) => {
     }
 
     query += ' ORDER BY name LIMIT ? OFFSET ?';
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
     params.push(limitNum, (pageNum - 1) * limitNum);
 
     const items = await db.all(query, params);
@@ -65,11 +65,12 @@ router.post('/', authMiddleware, requireRole('manager', 'admin'), async (req, re
   try {
     const { name, category, quantity, minQuantity, unitPrice, supplier } = req.body;
 
-    if (!name || !category || quantity === undefined || !unitPrice) {
+    if (!name || !category || quantity === undefined || unitPrice === undefined) {
       throw new ValidationError('name, category, quantity, and unitPrice are required');
     }
 
-    if (quantity < 0 || unitPrice < 0) {
+    if (!Number.isInteger(quantity) || quantity < 0 || !Number.isFinite(unitPrice) || unitPrice < 0
+      || (minQuantity !== undefined && (!Number.isInteger(minQuantity) || minQuantity < 0))) {
       throw new ValidationError('quantity and unitPrice must be non-negative');
     }
 
@@ -80,7 +81,7 @@ router.post('/', authMiddleware, requireRole('manager', 'admin'), async (req, re
     await db.run(
       `INSERT INTO inventory (id, name, category, quantity, minQuantity, unitPrice, supplier, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [itemId, name, category, quantity, minQuantity || 5, unitPrice, supplier, now, now]
+      [itemId, name, category, quantity, minQuantity ?? 5, unitPrice, supplier, now, now]
     );
 
     const item = await db.get('SELECT * FROM inventory WHERE id = ?', itemId);
@@ -100,6 +101,12 @@ router.put('/:id', authMiddleware, requireRole('manager', 'admin'), async (req, 
   try {
     const { name, category, quantity, minQuantity, unitPrice, supplier } = req.body;
     const itemId = req.params.id;
+
+    if ((quantity !== undefined && (!Number.isInteger(quantity) || quantity < 0))
+      || (minQuantity !== undefined && (!Number.isInteger(minQuantity) || minQuantity < 0))
+      || (unitPrice !== undefined && (!Number.isFinite(unitPrice) || unitPrice < 0))) {
+      throw new ValidationError('Stock quantities must be non-negative integers and price must be non-negative');
+    }
 
     const db = await getDatabase();
     const item = await db.get('SELECT * FROM inventory WHERE id = ?', itemId);
@@ -123,7 +130,7 @@ router.put('/:id', authMiddleware, requireRole('manager', 'admin'), async (req, 
         category || item.category,
         quantity !== undefined ? quantity : item.quantity,
         minQuantity !== undefined ? minQuantity : item.minQuantity,
-        unitPrice || item.unitPrice,
+        unitPrice ?? item.unitPrice,
         supplier !== undefined ? supplier : item.supplier,
         restockedTime || item.lastRestocked,
         now,

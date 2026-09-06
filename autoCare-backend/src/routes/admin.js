@@ -30,8 +30,8 @@ router.get('/logs', authMiddleware, requireRole('admin'), async (req, res, next)
     }
 
     query += ' ORDER BY l.createdAt DESC LIMIT ? OFFSET ?';
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
     params.push(limitNum, (pageNum - 1) * limitNum);
 
     const logs = await db.all(query, params);
@@ -53,9 +53,9 @@ router.get('/health', authMiddleware, requireRole('admin'), async (req, res, nex
 
     // Get statistics
     const stats = {
-      users: await db.get('SELECT COUNT(*) as count, role FROM users GROUP BY role'),
-      jobs: await db.get('SELECT COUNT(*) as count, status FROM jobs GROUP BY status'),
-      tasks: await db.get('SELECT COUNT(*) as count, status FROM tasks GROUP BY status'),
+      users: await db.all('SELECT COUNT(*) as count, role FROM users GROUP BY role'),
+      jobs: await db.all('SELECT COUNT(*) as count, status FROM jobs GROUP BY status'),
+      tasks: await db.all('SELECT COUNT(*) as count, status FROM tasks GROUP BY status'),
       vehicles: await db.get('SELECT COUNT(*) as count FROM vehicles'),
       inventory: await db.get('SELECT COUNT(*) as count FROM inventory'),
       lowStockItems: await db.get('SELECT COUNT(*) as count FROM inventory WHERE quantity <= minQuantity'),

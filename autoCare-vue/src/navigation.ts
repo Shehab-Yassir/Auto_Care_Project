@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Calendar, MapPin, Activity, FileText,
+  LayoutDashboard, Calendar, Activity, FileText,
   ClipboardList, Users, Boxes, BarChart3,
   Wrench, PackageSearch,
   Truck, PackageCheck, History,
@@ -9,7 +9,6 @@ import {
 export const customerNav = [
   { to: '/customer', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/customer/booking', label: 'Book Service', icon: Calendar },
-  { to: '/customer/pickup', label: 'Pickup', icon: MapPin },
   { to: '/customer/progress', label: 'Progress', icon: Activity },
   { to: '/customer/reports', label: 'Reports', icon: FileText },
 ]

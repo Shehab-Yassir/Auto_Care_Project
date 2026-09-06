@@ -10,7 +10,7 @@ import { useJobsStore, useUsersStore } from '@/stores/data'
 
 const jobs = useJobsStore()
 const users = useUsersStore()
-const technicians = () => users.items.filter((u) => u.role === 'technician')
+const technicians = () => users.items.filter((u) => u.role === 'technician' && u.status === 'active')
 
 function assign(jobId: string, techName: string) {
   jobs.update(jobId, { technicianName: techName, status: 'assigned' })

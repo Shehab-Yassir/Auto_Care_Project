@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { UserRole } from '@/types/index'
 import { apiCall } from '@/services/apiClient'
-import { customerDemo, setCustomerDemo } from '@/services/demoSession'
+import { demoSession, setDemoSession } from '@/services/demoSession'
 import { isValidEmail, isValidPassword, isNonEmpty } from '@/services/validation'
 
 interface AuthUser {
@@ -11,15 +11,27 @@ interface AuthUser {
   role: UserRole
 }
 
+const roles: UserRole[] = ['customer', 'manager', 'technician', 'driver', 'admin']
+
+function restoreUser(): AuthUser | null {
+  try {
+    const user = JSON.parse(localStorage.getItem('autocare:user') || 'null')
+    return user && typeof user.id === 'string' && typeof user.name === 'string'
+      && typeof user.email === 'string' && roles.includes(user.role) ? user : null
+  } catch {
+    return null
+  }
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: JSON.parse(localStorage.getItem('autocare:user') || 'null') as AuthUser | null,
-    selectedRole: (localStorage.getItem('autocare:role') as UserRole | null) ?? null,
+    user: restoreUser(),
+    selectedRole: roles.find((role) => role === localStorage.getItem('autocare:role')) ?? null,
     loading: false,
     error: null as string | null,
   }),
   getters: {
-    isDemo: () => customerDemo.value,
+    isDemo: () => demoSession.value,
     isAuthenticated: (state) => !!state.user,
   },
   actions: {
@@ -44,51 +56,25 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
         return false
       }
-      if (this.selectedRole === 'customer') {
-        if (!password) {
-          this.error = 'Enter any password to try the demo.'
-          this.loading = false
-          return false
-        }
-        this.user = { id: 'demo-customer', name: 'John Doe', email: email.trim(), role: 'customer' }
-        localStorage.removeItem('autocare:token')
-        localStorage.setItem('autocare:user', JSON.stringify(this.user))
-        setCustomerDemo(true)
-        this.loading = false
-        return true
-      }
-      if (!isValidPassword(password)) {
-        this.error = 'Password must be at least 6 characters.'
+      if (!password) {
+        this.error = 'Enter any password to sign in.'
         this.loading = false
         return false
       }
 
-      const result = await apiCall('POST', '/auth/login', {
-        email: email.trim(),
-        password,
-        role: this.selectedRole,
-      }, 'POST /auth/login')
-
-      this.loading = false
-      if (!result.ok) {
-        this.error = result.error
-        return false
-      }
-
-      const user = result.data as any
+      // Local demo sign-in accepts arbitrary credentials for every role.
+      const role = this.selectedRole
       this.user = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id: `demo-${role}`,
+        name: { customer: 'John Doe', manager: 'Lisa Park', technician: 'Mike Johnson', driver: 'Tom Rodriguez', admin: 'Demo Admin' }[role],
+        email: email.trim(),
+        role,
       }
-
-      // Store token and user
-      setCustomerDemo(false)
-      localStorage.setItem('autocare:token', user.token)
+      localStorage.removeItem('autocare:token')
       localStorage.setItem('autocare:user', JSON.stringify(this.user))
-      localStorage.setItem('autocare:role', user.role)
-
+      localStorage.setItem('autocare:role', role)
+      setDemoSession(true)
+      this.loading = false
       return true
     },
 
@@ -146,7 +132,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       // Store token and user
-      setCustomerDemo(false)
+      setDemoSession(false)
       localStorage.setItem('autocare:token', user.token)
       localStorage.setItem('autocare:user', JSON.stringify(this.user))
       localStorage.setItem('autocare:role', user.role)
@@ -155,7 +141,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout() {
-      setCustomerDemo(false)
+      setDemoSession(false)
       this.user = null
       this.selectedRole = null
       this.error = null

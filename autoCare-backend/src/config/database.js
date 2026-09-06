@@ -2,14 +2,21 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { mkdir } from 'fs/promises';
+import dotenv from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = process.env.DB_PATH || path.join(__dirname, '../../data/autocare.db');
+const backendRoot = path.resolve(__dirname, '../..');
+dotenv.config({ path: path.join(backendRoot, '.env') });
+const dbPath = process.env.DB_PATH === ':memory:' ? ':memory:'
+  : path.resolve(backendRoot, process.env.DB_PATH || 'data/autocare.db');
 
 let db = null;
 
 export async function getDatabase() {
   if (db) return db;
+
+  if (dbPath !== ':memory:') await mkdir(path.dirname(dbPath), { recursive: true });
 
   db = await open({
     filename: dbPath,

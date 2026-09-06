@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { User, Briefcase, Wrench, Truck, ShieldCheck, ArrowLeft, ArrowRight, Car } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import type { UserRole } from '@/types/index'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 const roles: { role: UserRole; label: string; icon: any; description: string }[] = [
@@ -17,7 +18,7 @@ const roles: { role: UserRole; label: string; icon: any; description: string }[]
 
 function pick(role: UserRole) {
   auth.setSelectedRole(role)
-  router.push('/login')
+  router.push({ path: '/login', query: route.query })
 }
 </script>
 
