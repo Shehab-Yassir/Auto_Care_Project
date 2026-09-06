@@ -8,25 +8,41 @@ import BaseButton from '@/components/common/BaseButton.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { technicianNav } from '@/navigation'
-import { useReportsStore } from '@/stores/data'
+import { useJobsStore, useReportsStore } from '@/stores/data'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const reports = useReportsStore()
 const auth = useAuthStore()
+const jobs = useJobsStore()
+const toast = useToast()
 
 const jobId = ref('')
 const diagnosis = ref('')
 const workPerformed = ref('')
 
 function submit() {
-  reports.add({
-    jobId: jobId.value,
+  if (!jobs.items.some((job) => job.id === jobId.value.trim() && job.technicianName === auth.user?.name)) {
+    toast.error('Enter the ID of a job assigned to you.')
+    return
+  }
+  if (!diagnosis.value.trim() || !workPerformed.value.trim()) {
+    toast.error('Enter the diagnosis and work performed.')
+    return
+  }
+  const created = reports.add({
+    jobId: jobId.value.trim(),
     technicianName: auth.user?.name ?? 'Unknown',
-    diagnosis: diagnosis.value,
-    workPerformed: workPerformed.value,
+    diagnosis: diagnosis.value.trim(),
+    workPerformed: workPerformed.value.trim(),
     status: 'submitted',
     createdAt: new Date().toISOString(),
   })
+  if (!created) {
+    toast.error(reports.error ?? 'Could not save the report.')
+    return
+  }
+  toast.success('Repair report submitted.')
   jobId.value = ''
   diagnosis.value = ''
   workPerformed.value = ''

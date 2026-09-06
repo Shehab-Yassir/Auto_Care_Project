@@ -35,13 +35,13 @@ router.get('/', authMiddleware, async (req, res, next) => {
       params.push(status);
     }
     if (priority) {
-      query += ' AND j.priority = ?';
+      query += params.length ? ' AND j.priority = ?' : ' WHERE j.priority = ?';
       params.push(priority);
     }
 
     query += ' ORDER BY j.createdAt DESC LIMIT ? OFFSET ?';
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
     params.push(limitNum, (pageNum - 1) * limitNum);
 
     const jobs = await db.all(query, params);

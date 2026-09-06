@@ -77,7 +77,7 @@ function handleLogout() {
 
       <main :aria-label="title" class="mx-auto max-w-[1500px] p-4 sm:p-8">
         <p v-if="auth.isDemo" class="mb-5 rounded-lg border border-primary/20 bg-primary/10 p-3 text-sm text-primary">
-          Customer demo — sample data only. Changes stay in this browser; no real bookings are submitted.
+          Demo mode — sample data shared across roles in this browser. No real bookings are submitted.
         </p>
         <slot />
       </main>

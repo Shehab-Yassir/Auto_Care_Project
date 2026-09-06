@@ -1,7 +1,8 @@
-import { getDatabase } from '../config/database.js';
+import { getDatabase, initializeDatabase } from '../config/database.js';
 import bcrypt from 'bcryptjs';
 
 async function seedDatabase() {
+  await initializeDatabase();
   const db = await getDatabase();
 
   console.log('🌱 Seeding database...');

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Car, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import BaseInput from '@/components/common/BaseInput.vue'
@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const toast = useToast()
 const email = ref('')
@@ -19,7 +20,7 @@ const error = ref('')
 async function onSubmit() {
   error.value = ''
   if (!auth.selectedRole) {
-    router.push('/select-role')
+    router.push({ path: '/select-role', query: route.query })
     return
   }
   loading.value = true
@@ -27,7 +28,9 @@ async function onSubmit() {
   loading.value = false
   if (ok) {
     toast.success(`Welcome back, ${auth.user?.name}!`)
-    router.push(`/${auth.selectedRole}`)
+    const redirect = route.query.redirect
+    router.push(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
+      ? redirect : `/${auth.selectedRole}`)
   } else error.value = auth.error ?? 'Please enter a valid email and password.'
 }
 </script>
@@ -53,8 +56,8 @@ async function onSubmit() {
           <p class="text-sm capitalize text-muted-foreground">Signing in as {{ auth.selectedRole ?? '...' }}</p>
         </div>
 
-        <p v-if="auth.selectedRole === 'customer'" class="mb-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
-          Customer demo: enter any email address and any password. Explore sample data without creating a real account.
+        <p class="mb-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+          Demo sign-in: enter any email address and any password for any role. No registered account is required.
         </p>
         <form @submit.prevent="onSubmit" class="flex flex-col gap-4">
           <BaseInput v-model="email" type="email" placeholder="you@example.com" label="Email" required>

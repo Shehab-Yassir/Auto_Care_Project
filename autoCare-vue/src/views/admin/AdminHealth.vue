@@ -16,7 +16,7 @@ const services = [
 
 <template>
   <DashboardLayout title="System Health" :nav-items="adminNav">
-    <PageHeader title="System health" subtitle="Live status for every core service." />
+    <PageHeader title="System health" subtitle="Sample service status for the demo; not live monitoring." />
 
     <div class="grid gap-4 sm:grid-cols-2">
       <BaseCard

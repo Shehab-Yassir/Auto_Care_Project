@@ -24,11 +24,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/customer/BookingPage.vue'),
       },
       {
-        path: 'pickup',
-        name: 'customer-pickup',
-        component: () => import('@/views/customer/PickupPage.vue'),
-      },
-      {
         path: 'progress',
         name: 'customer-progress',
         component: () => import('@/views/customer/ProgressPage.vue'),

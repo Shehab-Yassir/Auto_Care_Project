@@ -9,11 +9,14 @@ import BaseBadge from '@/components/common/BaseBadge.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { technicianNav } from '@/navigation'
-import { usePartRequestsStore } from '@/stores/data'
+import { useJobsStore, usePartRequestsStore } from '@/stores/data'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const partRequests = usePartRequestsStore()
 const auth = useAuthStore()
+const jobs = useJobsStore()
+const toast = useToast()
 
 const partName = ref('')
 const quantity = ref(1)
@@ -22,15 +25,28 @@ const jobId = ref('')
 const myRequests = computed(() => partRequests.items.filter((r) => r.technicianName === auth.user?.name))
 
 function submit() {
-  partRequests.add({
-    jobId: jobId.value,
+  if (!jobs.items.some((job) => job.id === jobId.value.trim() && job.technicianName === auth.user?.name)) {
+    toast.error('Enter the ID of a job assigned to you.')
+    return
+  }
+  if (!partName.value.trim() || !Number.isInteger(quantity.value) || quantity.value < 1) {
+    toast.error('Enter a part name and a positive whole-number quantity.')
+    return
+  }
+  const created = partRequests.add({
+    jobId: jobId.value.trim(),
     technicianName: auth.user?.name ?? 'Unknown',
-    partName: partName.value,
+    partName: partName.value.trim(),
     quantity: quantity.value,
     urgency: 'normal',
     status: 'pending',
     requestedAt: new Date().toISOString(),
   })
+  if (!created) {
+    toast.error(partRequests.error ?? 'Could not save the request.')
+    return
+  }
+  toast.success('Part request submitted.')
   partName.value = ''
   jobId.value = ''
   quantity.value = 1
