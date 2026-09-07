@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Car, LogOut, LayoutDashboard, MessageSquare } from 'lucide-vue-next'
+import { Car, Home, LogOut, LayoutDashboard, MessageSquare } from 'lucide-vue-next'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import NavLink from '@/components/common/NavLink.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -39,6 +39,10 @@ function handleLogout() {
       </div>
 
       <nav class="flex flex-1 flex-col gap-1">
+        <NavLink to="/">
+          <Home :size="18" />
+          Home
+        </NavLink>
         <NavLink v-for="item in navItems" :key="item.to" :to="item.to">
           <component :is="item.icon" :size="18" />
           {{ item.label }}
@@ -68,6 +72,10 @@ function handleLogout() {
       </header>
 
       <nav aria-label="Dashboard navigation" class="flex flex-wrap gap-2 border-b border-border bg-card p-3 md:hidden">
+        <NavLink to="/">
+          <Home :size="16" />
+          Home
+        </NavLink>
         <NavLink v-for="item in navItems" :key="item.to" :to="item.to">
           <component :is="item.icon" :size="16" />
           {{ item.label }}
