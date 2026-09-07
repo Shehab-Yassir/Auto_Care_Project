@@ -55,7 +55,7 @@ const router = useRouter()
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(var(--primary), 0.1), transparent 70%);
+  background: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.1), transparent 70%);
   pointer-events: none;
 }
 

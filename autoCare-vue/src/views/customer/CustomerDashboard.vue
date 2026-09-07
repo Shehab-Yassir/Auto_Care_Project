@@ -34,14 +34,14 @@ const toneFor = (status: string) =>
     <PageHeader :title="`${greeting}, ${auth.user?.name.split(' ')[0] ?? 'friend'}!`" subtitle="Here's what's happening with your vehicles" />
     <DashboardActions :items="actions" />
 
-    <section v-if="activeService" class="mb-8 rounded-2xl bg-gradient-to-r from-[#103b78] to-[#3c608c] p-6 text-white">
+    <section v-if="activeService" class="mb-8 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 to-accent/10 p-6 text-foreground">
       <div class="flex flex-wrap items-center gap-4">
-        <span class="rounded-xl bg-white/15 p-3"><Wrench :size="28" /></span>
-        <div class="flex-1"><p class="text-sm text-blue-100">Active Service</p><h2 class="text-xl font-bold">{{ activeService.serviceType }} — {{ activeService.model }}</h2><p class="text-sm capitalize text-blue-100">{{ activeService.status.replace(/-/g, ' ') }}</p></div>
-        <router-link to="/customer/progress" class="rounded-xl bg-white/90 px-4 py-3 text-sm font-medium text-slate-800">Track Progress →</router-link>
+        <span class="rounded-xl bg-primary/10 text-primary p-3"><Wrench :size="28" /></span>
+        <div class="flex-1"><p class="text-sm text-muted-foreground">Active Service</p><h2 class="text-xl font-bold">{{ activeService.serviceType }} — {{ activeService.model }}</h2><p class="text-sm capitalize text-muted-foreground">{{ activeService.status.replace(/-/g, ' ') }}</p></div>
+        <router-link to="/customer/progress" class="rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-soft transition hover:shadow-glow focus-ring">Track Progress →</router-link>
       </div>
       <div class="mb-2 mt-6 flex justify-between text-sm"><span>Progress</span><span>{{ progress }}%</span></div>
-      <div role="progressbar" :aria-valuenow="progress" :aria-valuemin="0" :aria-valuemax="100" aria-label="Service progress" class="h-2 rounded-full bg-white/20"><div class="h-full rounded-full bg-white" :style="{ width: `${progress}%` }" /></div>
+      <div role="progressbar" :aria-valuenow="progress" :aria-valuemin="0" :aria-valuemax="100" aria-label="Service progress" class="h-2 rounded-full bg-primary/15"><div class="h-full rounded-full bg-primary" :style="{ width: `${progress}%` }" /></div>
     </section>
 
     <div class="grid gap-4 sm:grid-cols-3">
